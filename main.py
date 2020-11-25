@@ -1,4 +1,5 @@
 import random
+import time
 from pprint import pprint
 
 
@@ -48,17 +49,7 @@ class SGA:
 
 
 if __name__ == '__main__':
-    def fitness(item):
-        return sum([int(x) for x in item])
-
-
-    def is_solve(item):
-        for i in item:
-            if i != "1":
-                return False
-        return True
-
-
-    sga = SGA(population_length=100, solve_length=1000, fitness_function=fitness, solve_function=is_solve)
-    print(sga.run())
-
+    l1=[1,2,3,4]
+    l2=l1[0:2]
+    l2.extend([5,6])
+    print(l1,l2)
