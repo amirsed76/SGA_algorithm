@@ -5,7 +5,6 @@ class SqlManager:
     def __init__(self, file):
         self.conn = sqlite3.connect(file)
         self.crs = self.conn.cursor()
-        self.create_database()
 
     def create_database(self):
         self.crs.execute("CREATE TABLE IF NOT EXISTS information ("
@@ -24,3 +23,6 @@ class SqlManager:
         sql = f"INSERT INTO information values ('{fitness}' , {max_gen} , {problem_size} , {pop_size} , '{result}' ,{generation} )"
         self.crs.execute(sql)
         self.conn.commit()
+
+
+

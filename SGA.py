@@ -116,6 +116,7 @@ class SGA:
 if __name__ == '__main__':
     time1 = time.time()
     sql_manager = SqlManager(file="information.sqlite")
+    sql_manager.create_database()
     for function in [one_max, peak, trap]:
         for max_gen in [100, 200, 300]:
             for problem_size in [10, 30, 50, 70, 100]:
