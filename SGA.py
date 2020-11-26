@@ -81,17 +81,7 @@ class SGA:
 
         return chromosome
 
-    def generate_offsprings(self, parents_pairs):
-        off_springs = []
-        for parent_pair in parents_pairs:
-            offspring_pair = self.single_point_cross_over(parent_pair[0], parent_pair[1], p=0.8)
-            self.bit_flipping(offspring_pair[0])
-            self.bit_flipping(offspring_pair[1])
-            off_springs.append(offspring_pair[0])
-            off_springs.append(offspring_pair[1])
-        return off_springs
-
-    def generate_offsprings2(self, parents_pool):
+    def generate_offsprings(self, parents_pool):
         off_springs = []
         for i in range(0, self.population_size, 2):
             offspring_pair = self.single_point_cross_over(parents_pool[i], parents_pool[i + 1], p=0.8)
@@ -107,7 +97,7 @@ class SGA:
             self.update_selection_problems_probability_list()
             parents_pool = [self.population[self.fps()] for i in range(self.population_size)]
             random.shuffle(parents_pool)
-            offsprings = self.generate_offsprings2(parents_pool=parents_pool)
+            offsprings = self.generate_offsprings(parents_pool=parents_pool)
             self.population = offsprings
             self.generation += 1
         return max(self.population, key=lambda item: self.fitness_function(item))

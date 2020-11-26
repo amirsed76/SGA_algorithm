@@ -1,11 +1,8 @@
 import pandas as pd
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 from sql_manager import SqlManager
 from SGA import one_max, peak, trap
 import numpy as np
-import scipy.interpolate as interp
 import matplotlib.pyplot as plt
 
 
@@ -15,14 +12,6 @@ def str_to_list(string):
 
 def query_by_fitness_function(function_name, data_frame):
     return data_frame.query(f"fitness == '{function_name}'")
-
-
-def query_by_problem_size(problem_size, data_frame):
-    return data_frame.query(f"problem_size == {problem_size}")
-
-
-def query_by_population_size(pop_size, data_frame):
-    return data_frame.query(f"pop_size == {pop_size}")
 
 
 def calculate_fitness_value(string, fitness_function):
@@ -50,6 +39,31 @@ def calculate_color(row):
     return row
 
 
+def draw_plot(data_frame2, name):
+    for state in ["mean", "std"]:
+        fig = plt.figure(name + "  " + state)
+        ax = fig.add_subplot(111, projection='3d')
+        for color in ['y', 'g', 'b', 'm', 'r']:
+            data_frame = data_frame2.loc[data_frame2["color"] == color]
+            X = data_frame["pop_size"]
+            Y = data_frame["max_gen"]
+            Z = data_frame["fitness_value"][state]
+            colors = data_frame["color"]
+            ax.scatter(X, Y, Z, c=colors, marker='o')
+            ax.plot(X, Y, Z, color=color)
+
+        ax.set_xlabel("pop_size")
+        ax.set_ylabel("max_gen")
+        ax.set_zlabel(f'fitness_value({state})')
+
+        x = np.linspace(0, 1, 10)
+        for i, color in enumerate([(10, 'y'), (30, 'g'), (50, 'b'), (70, 'm'), (100, 'r')], start=1):
+            plt.plot(x, i * x + i, color=color[1], label=str(color[0]))
+        plt.legend(loc='best')
+
+        plt.show()
+
+
 if __name__ == '__main__':
     sql_manager = SqlManager("information.sqlite")
     df = pd.read_sql(sql="select * from information", con=sql_manager.conn)
@@ -58,24 +72,9 @@ if __name__ == '__main__':
         func_df = func_df.apply(calculate_fitness_value_for_each_row, axis=1, args=[func])
         print("____________________")
         # print(func_df)
-        group_df = func_df.groupby(["problem_size", "pop_size", "generation"]).agg(
+        group_df = func_df.groupby(["problem_size", "pop_size", "max_gen"]).agg(
             {'fitness_value': ['mean', 'std']}).reset_index()
-
-        X = group_df["pop_size"]
-        Y = group_df["generation"]
-        Z = group_df["fitness_value"]["mean"]
-
-        fig = plt.figure(func.__name__)
-        ax = fig.add_subplot(111, projection='3d')
         group_df = group_df.apply(calculate_color, axis=1)
-        ax.scatter(X, Y, Z, c=group_df["color"], marker='o')
-
-        ax.set_xlabel("pop_size")
-        ax.set_ylabel("generation")
-        ax.set_zlabel('fitness_value')
-
-        x = np.linspace(0, 1, 10)
-        for i, color in enumerate([(10, 'y'), (30, 'g'), (50, 'b'), (70, 'm'), (100, 'r')], start=1):
-            plt.plot(x, i * x + i, color=color[1], label=str(color[0]))
-        plt.legend(loc='best')
-        plt.show()
+        group_df: pd.DataFrame
+        # print(group_df["color"])
+        draw_plot(data_frame2=group_df, name=func.__name__)
