@@ -97,7 +97,7 @@ class SGA:
             self.update_selection_problems_probability_list()
             parents_pool = [self.population[self.fps()] for i in range(self.population_size)]
             random.shuffle(parents_pool)
-            offsprings = self.generate_offsprings(parents_pool=parents_pool)
+            offsprings = self.generate_offsprings2(parents_pool=parents_pool)
             self.population = offsprings
             self.generation += 1
         return max(self.population, key=lambda item: self.fitness_function(item))

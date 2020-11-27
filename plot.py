@@ -1,4 +1,7 @@
+from pprint import pprint
+
 import pandas as pd
+from mpl_toolkits.mplot3d import Axes3D
 
 from sql_manager import SqlManager
 from SGA import one_max, peak, trap
@@ -39,12 +42,12 @@ def calculate_color(row):
     return row
 
 
-def draw_plot(data_frame2, name):
+def draw_plot(input_df, name):
     for state in ["mean", "std"]:
         fig = plt.figure(name + "  " + state)
         ax = fig.add_subplot(111, projection='3d')
         for color in ['y', 'g', 'b', 'm', 'r']:
-            data_frame = data_frame2.loc[data_frame2["color"] == color]
+            data_frame = input_df.loc[input_df["color"] == color]
             X = data_frame["pop_size"]
             Y = data_frame["max_gen"]
             Z = data_frame["fitness_value"][state]
@@ -64,6 +67,77 @@ def draw_plot(data_frame2, name):
         plt.show()
 
 
+def draw_plot2(input_df, name):
+    for state in ["mean", "std"]:
+        fig = plt.figure(f"{name} {state}")
+
+        ax = Axes3D(fig)
+
+        for index, (prob_size, color) in enumerate([(10, 'y'), (30, 'g'), (50, 'b'), (70, 'm'), (100, 'r')]):
+            data_frame = input_df.loc[input_df["problem_size"] == prob_size]
+            X = input_df["pop_size"].copy().drop_duplicates()
+            Y = input_df["max_gen"].copy().drop_duplicates()
+            df2 = data_frame.copy()
+            data = []
+            for pop_size in X.tolist():
+                raw = []
+                pop_size_df = df2.loc[df2["pop_size"] == pop_size].copy()
+                for max_gen in Y.tolist():
+                    value = pop_size_df.loc[pop_size_df["max_gen"] == max_gen]["fitness_value"][state].values[0]
+                    raw.append(value)
+                data.append(raw)
+
+            data = np.array(data)
+
+            lx = len(data[0])  # Work out matrix dimensions
+            ly = len(data[:, 0])
+            xpos = np.arange(0, lx, 1)  # Set up a mesh of positions
+            ypos = np.arange(0, ly, 1)
+            xpos, ypos = np.meshgrid(xpos + index / 10, ypos + 0.05)
+            #
+            xpos = xpos.flatten()  # Convert positions to 1D array
+            ypos = ypos.flatten()
+            zpos = np.zeros(lx * ly)
+
+            dx = 0.1 * np.ones_like(zpos)
+            dy = dx.copy()
+            dz = data.flatten()
+
+            ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color=color)
+
+        print(X.tolist())
+        print(Y.tolist())
+        # ax.set_xticklabels([str(x) for x in X.tolist()])
+        # ax.set_yticklabels([str(y) for y in Y.tolist()])
+        #
+        # ax.set_xticklabels[]
+        # ax.w_xaxis.set_ticklabels(["a", "b", "c"], minor=True)
+        # ax.w_yaxis.set_ticklabels(["a", "b", "c", "d"])
+
+        # ax.xaxis.set_ticklabels(["a", "b", "c"])
+        # ax.yaxis.set_ticklabels(["a", "b", "c", "d"])
+
+        r = np.linspace(0, 1, 10)
+        for i, item in enumerate([(10, 'y'), (30, 'g'), (50, 'b'), (70, 'm'), (100, 'r')], start=1):
+            plt.plot(0, 0, color=item[1], label=str(item[0]))
+        plt.legend(loc='best')
+        ax.set_xlabel("MAX_GEN")
+        ax.set_ylabel('POP_SIZE')
+        ax.set_zlabel('FITNESS')
+        x_labels = []
+        for x in X.tolist():
+            x_labels.append(" ")
+            x_labels.append(x)
+
+        y_labels = []
+        for y in Y.tolist():
+            y_labels.append(" ")
+            y_labels.append(y)
+        ax.set_yticklabels(x_labels)
+        ax.set_xticklabels(y_labels)
+        plt.show()
+
+
 if __name__ == '__main__':
     sql_manager = SqlManager("information.sqlite")
     df = pd.read_sql(sql="select * from information", con=sql_manager.conn)
@@ -77,4 +151,5 @@ if __name__ == '__main__':
         group_df = group_df.apply(calculate_color, axis=1)
         group_df: pd.DataFrame
         # print(group_df["color"])
-        draw_plot(data_frame2=group_df, name=func.__name__)
+        # draw_plot(input_df=group_df, name=func.__name__)
+        draw_plot2(group_df, func.__name__)
