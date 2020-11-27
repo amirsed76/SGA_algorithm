@@ -75,15 +75,16 @@ def draw_plot2(input_df, name):
 
         for index, (prob_size, color) in enumerate([(10, 'y'), (30, 'g'), (50, 'b'), (70, 'm'), (100, 'r')]):
             data_frame = input_df.loc[input_df["problem_size"] == prob_size]
-            X = input_df["pop_size"].copy().drop_duplicates()
-            Y = input_df["max_gen"].copy().drop_duplicates()
+            pop_sizes = input_df["pop_size"].copy().drop_duplicates()
+            max_gens = input_df["max_gen"].copy().drop_duplicates()
             df2 = data_frame.copy()
             data = []
-            for pop_size in X.tolist():
+
+            for max_gen in max_gens.tolist():
                 raw = []
-                pop_size_df = df2.loc[df2["pop_size"] == pop_size].copy()
-                for max_gen in Y.tolist():
-                    value = pop_size_df.loc[pop_size_df["max_gen"] == max_gen]["fitness_value"][state].values[0]
+                max_gen_df = df2.loc[df2["max_gen"] == max_gen].copy()
+                for pop_size in pop_sizes.tolist():
+                    value = max_gen_df.loc[max_gen_df["pop_size"] == pop_size]["fitness_value"][state].values[0]
                     raw.append(value)
                 data.append(raw)
 
@@ -105,36 +106,24 @@ def draw_plot2(input_df, name):
 
             ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color=color)
 
-        print(X.tolist())
-        print(Y.tolist())
-        # ax.set_xticklabels([str(x) for x in X.tolist()])
-        # ax.set_yticklabels([str(y) for y in Y.tolist()])
-        #
-        # ax.set_xticklabels[]
-        # ax.w_xaxis.set_ticklabels(["a", "b", "c"], minor=True)
-        # ax.w_yaxis.set_ticklabels(["a", "b", "c", "d"])
-
-        # ax.xaxis.set_ticklabels(["a", "b", "c"])
-        # ax.yaxis.set_ticklabels(["a", "b", "c", "d"])
-
         r = np.linspace(0, 1, 10)
         for i, item in enumerate([(10, 'y'), (30, 'g'), (50, 'b'), (70, 'm'), (100, 'r')], start=1):
             plt.plot(0, 0, color=item[1], label=str(item[0]))
         plt.legend(loc='best')
-        ax.set_xlabel("MAX_GEN")
-        ax.set_ylabel('POP_SIZE')
+        ax.set_xlabel("POP_SIZE")
+        ax.set_ylabel('MAX_GEN')
         ax.set_zlabel('FITNESS')
         x_labels = []
-        for x in X.tolist():
+        for x in pop_sizes.tolist():
             x_labels.append(" ")
             x_labels.append(x)
 
         y_labels = []
-        for y in Y.tolist():
+        for y in max_gens.tolist():
             y_labels.append(" ")
             y_labels.append(y)
-        ax.set_yticklabels(x_labels)
-        ax.set_xticklabels(y_labels)
+        ax.set_xticklabels(x_labels)
+        ax.set_yticklabels(y_labels)
         plt.show()
 
 
@@ -145,11 +134,8 @@ if __name__ == '__main__':
         func_df = query_by_fitness_function(func.__name__, df)
         func_df = func_df.apply(calculate_fitness_value_for_each_row, axis=1, args=[func])
         print("____________________")
-        # print(func_df)
         group_df = func_df.groupby(["problem_size", "pop_size", "max_gen"]).agg(
             {'fitness_value': ['mean', 'std']}).reset_index()
         group_df = group_df.apply(calculate_color, axis=1)
-        group_df: pd.DataFrame
-        # print(group_df["color"])
-        # draw_plot(input_df=group_df, name=func.__name__)
+        draw_plot(input_df=group_df, name=func.__name__)
         draw_plot2(group_df, func.__name__)
